@@ -1,0 +1,12 @@
+# Ansible
+*.retry
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Vagrant
+.vagrant/
+
+# OS
+.DS_Store

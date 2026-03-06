@@ -1,0 +1,48 @@
+---
+# Variables comunes para DNS y DHCP
+
+# Dominio interno
+internal_domain: example.local
+
+# DNS
+dns_forwarders: []
+# Ejemplo: ['8.8.8.8', '8.8.4.4']
+
+dns_zone_forward: "{{ internal_domain }}"
+dns_zone_reverse: "0.168.192"
+
+# Serial de zona DNS (modificar para actualizar registros)
+dns_zone_serial: 2025010101
+
+# Registros A y PTR de ejemplo
+dns_records:
+  - name: "dns"
+    ip: "192.168.56.10"
+  - name: "client"
+    ip: "192.168.56.11"
+
+# DHCP
+dhcpd_subnets:
+  - network: "192.168.56.0"
+    netmask: "255.255.255.0"
+    range_start: "192.168.56.100"
+    range_end: "192.168.56.200"
+    routers: ["192.168.56.1"]
+    broadcast: "192.168.56.255"
+
+dhcpd_default_lease_time: 600
+dhcpd_max_lease_time: 7200
+
+# DNS servers to hand out via DHCP
+dhcpd_dns_servers:
+  - "192.168.56.10"
+
+# Reservas opcionales (por MAC)
+dhcpd_hosts: []
+# Ejemplo:
+#  - name: "reserved-host"
+#    mac: "08:00:27:12:34:56"
+#    ip: "192.168.56.50"
+
+# Interface para dhcpd (puede ser override en inventario)
+dhcpd_interface: "{{ ansible_default_ipv4.interface }}"

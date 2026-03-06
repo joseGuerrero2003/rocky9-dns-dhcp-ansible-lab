@@ -1,0 +1,30 @@
+---
+# Valores por defecto para el rol dns_bind
+
+bind_package: bind
+bind_service: named
+
+# directorios
+dns_named_conf_dir: /etc/named
+
+dns_options:
+  listen_on: ["127.0.0.1", "{{ ansible_default_ipv4.address }}"]
+  allow_query: ["any"]
+  recursion: false
+
+# Opciones de reenvío
+dns_forwarders: []
+
+# Zonas
+dns_zone_forward: "{{ internal_domain }}"
+dns_zone_reverse: "{{ dns_zone_reverse }}"
+
+dns_zone_serial: 2025010101
+
+dns_zone_ttl: 86400
+
+# Plantillas y archivos
+dns_zone_forward_file: "{{ dns_named_conf_dir }}/zones/db.{{ dns_zone_forward }}"
+dns_zone_reverse_file: "{{ dns_named_conf_dir }}/zones/db.{{ dns_zone_reverse }}"
+
+dns_zone_records: "{{ dns_records }}"

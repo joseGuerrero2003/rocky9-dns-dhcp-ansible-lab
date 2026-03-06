@@ -1,0 +1,21 @@
+---
+# defaults for dhcpd role
+
+dhcpd_package: dhcp-server
+dhcpd_service: dhcpd
+
+dhcpd_conf_path: /etc/dhcp/dhcpd.conf
+dhcpd_sysconfig: /etc/sysconfig/dhcpd
+
+# DHCP options
+dhcpd_authoritative: true
+dhcpd_domain_name: "{{ internal_domain | default('example.local') }}"
+dhcpd_domain_name_servers: "{{ dhcpd_dns_servers | default(['8.8.8.8']) | join(', ') }}"
+dhcpd_default_lease_time: 600
+dhcpd_max_lease_time: 7200
+
+dhcpd_subnets: []
+
+dhcpd_hosts: []
+
+dhcpd_interface: "{{ dhcpd_interface | default(ansible_default_ipv4.interface | default('eth0')) }}"

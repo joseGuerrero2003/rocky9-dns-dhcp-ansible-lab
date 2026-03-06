@@ -1,0 +1,15 @@
+$TTL {{ dns_zone_ttl }}
+@   IN  SOA  ns. {{ dns_zone_forward }}. (
+        {{ dns_zone_serial }} ; serial
+        3600       ; refresh
+        900        ; retry
+        604800     ; expire
+        86400      ; minimum
+)
+
+@       IN  NS  ns.{{ dns_zone_forward }}.
+ns      IN  A   {{ dns_records | selectattr('name','equalto','dns') | map(attribute='ip') | list | first }}
+
+{% for record in dns_records %}
+{{ record.name }}    IN  A   {{ record.ip }}
+{% endfor %}

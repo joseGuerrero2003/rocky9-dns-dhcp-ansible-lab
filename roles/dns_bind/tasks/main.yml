@@ -1,0 +1,95 @@
+---
+- name: Ensure bind package is installed
+  ansible.builtin.package:
+    name: "{{ bind_package }}"
+    state: present
+
+- name: Ensure named configuration directory exists
+  ansible.builtin.file:
+    path: "{{ dns_named_conf_dir }}/zones"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy named.conf
+  ansible.builtin.template:
+    src: named.conf.j2
+    dest: "{{ dns_named_conf_dir }}/named.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart named
+
+- name: Deploy forward zone file
+  ansible.builtin.template:
+    src: zone.forward.j2
+    dest: "{{ dns_zone_forward_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart named
+
+- name: Deploy reverse zone file
+  ansible.builtin.template:
+    src: zone.reverse.j2
+    dest: "{{ dns_zone_reverse_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart named
+
+- name: Validate named.conf
+  ansible.builtin.command:
+    cmd: "named-checkconf -z {{ dns_named_conf_dir }}/zones"
+  changed_when: false
+  register: named_conf_check
+
+- name: Validate forward zone
+  ansible.builtin.command:
+    cmd: "named-checkzone {{ dns_zone_forward }} {{ dns_zone_forward_file }}"
+  changed_when: false
+  register: named_zone_forward_check
+
+- name: Validate reverse zone
+  ansible.builtin.command:
+    cmd: "named-checkzone {{ dns_zone_reverse }} {{ dns_zone_reverse_file }}"
+  changed_when: false
+  register: named_zone_reverse_check
+
+- name: Ensure named service is enabled and running
+  ansible.builtin.service:
+    name: "{{ bind_service }}"
+    state: started
+    enabled: true
+
+- name: Ensure firewalld is running (if installed)
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+  when: ansible_facts.packages is defined and ansible_facts.packages.firewalld is defined
+
+- name: Add DNS service to firewalld
+  ansible.builtin.firewalld:
+    service: dns
+    permanent: true
+    state: enabled
+    immediate: true
+  when: ansible_facts.packages is defined and ansible_facts.packages.firewalld is defined
+
+- name: Add DNS UDP port to firewalld
+  ansible.builtin.firewalld:
+    port: 53/udp
+    permanent: true
+    state: enabled
+    immediate: true
+  when: ansible_facts.packages is defined and ansible_facts.packages.firewalld is defined
+
+- name: Add DNS TCP port to firewalld
+  ansible.builtin.firewalld:
+    port: 53/tcp
+    permanent: true
+    state: enabled
+    immediate: true
+  when: ansible_facts.packages is defined and ansible_facts.packages.firewalld is defined

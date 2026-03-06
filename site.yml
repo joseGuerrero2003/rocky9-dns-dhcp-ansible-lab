@@ -1,0 +1,8 @@
+- name: Configure DNS and DHCP on Rocky Linux 9
+  hosts: servers
+  become: true
+  vars_files:
+    - group_vars/all.yml
+  roles:
+    - role: dns_bind
+    - role: dhcpd

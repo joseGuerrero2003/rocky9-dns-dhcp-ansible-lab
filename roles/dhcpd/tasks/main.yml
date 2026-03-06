@@ -1,0 +1,49 @@
+---
+- name: Ensure dhcpd package is installed
+  ansible.builtin.package:
+    name: "{{ dhcpd_package }}"
+    state: present
+
+- name: Deploy dhcpd configuration
+  ansible.builtin.template:
+    src: dhcpd.conf.j2
+    dest: "{{ dhcpd_conf_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart dhcpd
+
+- name: Ensure dhcpd binds to selected interface
+  ansible.builtin.lineinfile:
+    path: "{{ dhcpd_sysconfig }}"
+    regexp: '^DHCPDARGS=' 
+    line: "DHCPDARGS=\"{{ dhcpd_interface }}\""
+    create: true
+  notify: restart dhcpd
+
+- name: Validate dhcpd configuration
+  ansible.builtin.command:
+    cmd: "dhcpd -t -cf {{ dhcpd_conf_path }}"
+  changed_when: false
+  register: dhcpd_check
+
+- name: Ensure dhcpd service is enabled and running
+  ansible.builtin.service:
+    name: "{{ dhcpd_service }}"
+    state: started
+    enabled: true
+
+- name: Ensure firewalld is running (if installed)
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+  when: ansible_facts.packages is defined and ansible_facts.packages.firewalld is defined
+
+- name: Open DHCP port in firewalld
+  ansible.builtin.firewalld:
+    port: 67/udp
+    permanent: true
+    state: enabled
+    immediate: true
+  when: ansible_facts.packages is defined and ansible_facts.packages.firewalld is defined
